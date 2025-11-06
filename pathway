@@ -1,0 +1,44 @@
+from genesis.world import World
+from genesis.utils import terrain
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Create world
+world = World()
+
+# Terrain dimensions (in meters)
+length = 500  # x-direction
+width = 350   # y-direction
+resolution = 1.0  # 1 meter grid
+
+# Generate base flat terrain
+x_points = int(length / resolution)
+y_points = int(width / resolution)
+heightmap = np.zeros((y_points, x_points))
+
+# Define marsh region
+# Marsh starts at 100m and ends at 300m (lengthwise)
+marsh_start = int(100 / resolution)
+marsh_end = int(300 / resolution)
+
+# Lower the marsh slightly and add some random noise to simulate softness/unevenness
+heightmap[:, marsh_start:marsh_end] -= 0.2  # lower by 0.2m
+heightmap[:, marsh_start:marsh_end] += np.random.normal(0, 0.05, size=(y_points, marsh_end - marsh_start))
+
+# Convert heightmap to Genesis terrain
+terrain_obj = terrain.heightmap_to_terrain(heightmap, scale=(length, width, 10.0))  # vertical exaggeration
+
+# Add terrain to the world
+world.add(terrain_obj)
+
+# Render a bird's-eye (top-down) view using matplotlib
+plt.figure(figsize=(8, 6))
+plt.imshow(heightmap, cmap='terrain', extent=[0, length, 0, width], origin='lower')
+plt.title("Bird's Eye View: 500m x 350m Terrain with Marsh Patch")
+plt.xlabel("Length (m)")
+plt.ylabel("Width (m)")
+plt.colorbar(label='Elevation (m)')
+plt.show()
+
+# Optionally save the terrain as a mesh or visualize in Genesis GUI if available
+# world.show()
